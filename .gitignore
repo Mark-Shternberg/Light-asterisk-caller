@@ -1,0 +1,11 @@
+
+*.pyc
+*.zip
+*.manifest
+*.toc
+*.pyz
+*.pkg
+*.txt
+*.html
+*.spec
+*.ini

@@ -1,0 +1,15 @@
+[AMI]
+URL=1.1.1.1
+PORT=8088
+USERNAME=username
+SECRET=secret
+
+[SIP]
+CHANNEL=PJSIP/101
+CONTEXT=from-internal
+CALLER_ID=101
+
+[ASTERISK]
+INTERNAL=3
+
+#INTERNAL - number of digits of internal numbers
