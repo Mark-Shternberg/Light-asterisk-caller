@@ -3,6 +3,7 @@ import sys
 from PIL import Image
 from pystray import MenuItem as item
 from pystray import Icon as icon, Menu as menu, MenuItem as item
+from multiprocessing import Process
 from listener import listen_sip
 from call import call_out_massage
 
@@ -11,6 +12,7 @@ def close():
     sys.exit()
 
 def tray():
+
     icon = pystray.Icon('icon')
     image = Image.open("favicon.ico")
 
@@ -26,8 +28,20 @@ def tray():
 
 #------------------TRAY END------------------#
 
+def run_parallel(*functions):
+    '''
+    Run functions in parallel
+    '''
+    processes = []
+    for function in functions:
+        proc = Process(target=function)
+        proc.start()
+        processes.append(proc)
+    for proc in processes:
+        proc.join()
+
 def main():
-    tray() #show icon with menu in tray
-   # listen_sip() #listen for calls and show massages
+    if __name__ == '__main__':
+        run_parallel(tray, listen_sip)
 
 main()

@@ -12,4 +12,16 @@ CALLER_ID=101
 [ASTERISK]
 INTERNAL=3
 
-#INTERNAL - number of digits of internal numbers
+[LDAP]
+ACTIVE=True
+URL=1.1.1.1
+USER=username@example.local
+PASSWORD=password
+BASE=OU=Test,DC=example,DC=local
+
+#
+#INTERNAL - number of digits of internal phone numbers
+#
+#LDAP - if you don't want to use LDAP set ACTIVE to False
+#       it will search name of caller for incoming calls
+#

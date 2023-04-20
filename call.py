@@ -2,7 +2,8 @@ import re
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
-import requests
+from asterisk.ami import AMIClient
+from asterisk.ami import SimpleAction
 import configparser
 from error import error_massage
 
@@ -63,16 +64,15 @@ def make_call(tel: str):
         config = configparser.ConfigParser()
         config.read("settings.ini")
 
-        URL=config['AMI']["URL"]
-        PORT=config['AMI']["PORT"]
-        USERNAME=config['AMI']["USERNAME"]
-        SECRET=config['AMI']["SECRET"]
+        client = AMIClient(address=config['AMI']["URL"],port=int(config['AMI']["PORT"]))
+        client.login(username=config['AMI']["USERNAME"],secret=config['AMI']["SECRET"],callback=10)
 
-        CHANNEL=config['SIP']["CHANNEL"]
-        CONTEXT=config['SIP']["CONTEXT"]
-        CALLER_ID=config['SIP']["CALLER_ID"]
-
-        session = requests.Session()
-        session.get('http://'+URL+':'+PORT+'/rawman?action=login&username='+USERNAME+'&secret='+SECRET+'')
-        url = 'http://'+URL+':'+PORT+'/rawman?action=Originate&Channel='+CHANNEL+'&Context='+CONTEXT+'&Priority=1&Exten='+tel+'&CallerID='+CALLER_ID
-        requests.get(url, cookies=session.cookies.get_dict(), timeout=1)
+        action = SimpleAction(
+            'Originate',
+            Channel=config['SIP']["CHANNEL"],
+            Exten=tel,
+            Priority=1,
+            Context=config['SIP']["CONTEXT"],
+            CallerID=config['SIP']["CALLER_ID"],
+        )
+        client.send_action(action)
