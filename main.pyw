@@ -14,7 +14,7 @@ def close():
 def tray():
 
     icon = pystray.Icon('icon')
-    image = Image.open("favicon.ico")
+    image = Image.open("ico/favicon.ico")
 
     icon.icon = image
     icon.menu = menu(item('Make call', lambda: call_out_massage()),

@@ -1,39 +1,62 @@
 from tkinter import *
 from tkinter import ttk
+import tkinter
 import configparser
 import telnetlib
 import json
 import re
+import io
+from PIL import Image, ImageTk
 from ldap3 import Server, Connection, ALL
 
 config = configparser.ConfigParser()
 config.read("settings.ini", encoding="utf-8")
 
-def massage(call_tel, call_from):
+def massage(call_tel, call_from, call_photo, call_desc, Caller_post):
     massage = Tk()
     screen_width = massage.winfo_screenwidth()  # Width of the screen
     screen_height = massage.winfo_screenheight() # Height of the screen
     x = (screen_width) - (380)
     y = (screen_height) - (220)
     massage.geometry('%dx%d+%d+%d' % (350, 130, x, y))
-    massage.iconbitmap("ico/call.ico")
-    massage.title("Incoming call")
-    Label(massage, text="Incoming call:", font=('Helvetica 12')).pack(pady=5)
-    Label(massage, text=call_from, font=('Helvetica 12 bold')).pack(pady=2)
-    Label(massage, text=call_tel, font=('Helvetica 12 bold')).pack(pady=2)
-    button = 'OK'
-    ttk.Button(massage, text=button, command= massage.destroy).pack(pady=2)
+    massage.iconbitmap("ico/call_in.ico")
+    massage.title("Incoming call - " + call_tel)
+
+    if call_photo is None or call_photo == '':
+        image = Image.open('ico/no_photo.png')
+    else:
+        image = Image.open(io.BytesIO(call_photo))
+        
+    image = image.resize((80,80), Image.ANTIALIAS)
+    img = ImageTk.PhotoImage(image)
+    canvas = tkinter.Canvas(massage, height=80, width=80)
+    image = canvas.create_image(0, 0, anchor='nw',image=img)
+
+    if call_from is None or call_from == '': call_from = call_tel
+
+    frame_text = Frame(massage)
+    canvas.place(relx=0.10,rely=0.15)
+
+    Label(frame_text, text=call_from, font=('Helvetica 12 bold')).pack(pady=1)
+    Label(frame_text, text=Caller_post, font=('Helvetica 10'), wraplength=140).pack(pady=1)
+    Label(frame_text, text=call_desc, font=('Helvetica 10')).pack(pady=5)
+
+    frame_text.pack(expand=1, padx=(90,0))
+
     massage.mainloop()
 
-def ldap_search(tel: str):
+def ldap_search(tel: str, i):
     server = Server(config['LDAP']["URL"])
     conn = Connection(server, config['LDAP']["USER"], config['LDAP']["PASSWORD"], auto_bind=True)
     
     tel_filter = '(|(telephoneNumber='+tel+')(homePhone='+tel+')(mobile='+tel+'))'
 
-    conn.search(config['LDAP']["BASE"], tel_filter , attributes=['cn'])
+    conn.search(config['LDAP']["BASE"], tel_filter , attributes=['cn','thumbnailPhoto', 'description', 'title'])
     for entry in conn.entries:
-        return str(entry['cn'])
+        if i == "cn": return str(entry['cn'])
+        elif i == "img": return entry['thumbnailPhoto']
+        elif i == "desc": return str(entry['description'])
+        elif i == "title": return str(entry['title'])
 
 def listen_sip():
     ##
@@ -63,11 +86,14 @@ def listen_sip():
                 if string[mes]['Event'] == 'NewConnectedLine' and string[mes]['ChannelStateDesc'] == 'Ring' and string[mes]['ConnectedLineNum'] == pc_phone:
                     CallerIDNum = string[mes]['CallerIDNum']
                     CallerIDName = string[mes]['CallerIDName']
-                    Caller_name = ldap_search(CallerIDNum)
+                    Caller_name = ldap_search(CallerIDNum, 'cn')
+                    Caller_photo = ldap_search(CallerIDNum, 'img')
+                    Caller_description = ldap_search(CallerIDNum, 'desc')
+                    Caller_post = ldap_search(CallerIDNum, 'title')
 
                     if config['LDAP']["ACTIVE"] == "True" and Caller_name is None:
-                        massage(CallerIDNum,Caller_name)
-                    else: massage(CallerIDNum,CallerIDName)
+                        massage(CallerIDNum, Caller_name, Caller_photo, Caller_description, Caller_post)
+                    else: massage(CallerIDNum,CallerIDName, None, None, None)
             except UnboundLocalError:
                 1+1
             except KeyError:

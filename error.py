@@ -12,6 +12,12 @@ def error_massage(error):
     massage.title("Error")
 
     Label(massage, text=error, font=('Helvetica 12 bold')).pack(pady=20)
-    button = 'OK'
-    ttk.Button(massage, text=button, command= massage.destroy).pack()
+
+    ttk.Button(massage, text='OK', command= massage.destroy).pack()
+
+    def close(event):
+        massage.destroy
+
+    massage.bind("<Return>",close)
+    
     massage.mainloop()
