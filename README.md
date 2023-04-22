@@ -3,11 +3,12 @@ App to listen for calls and calling from OS<br><br>
 It can:
 <li>Listen for incoming calls (message bout call will appear at the bottom right of the monitor)
 <li>Take photo, name, job title and description of person from LDAP
+<li>Take name from Asterisk
 <li>Make calls (also by choosing person to call from LDAP)
 <li>Be a default call program (for tel links)
 
 
-<br>
+<br><br>
 Screenshots:
 <br><br>
 
