@@ -19,3 +19,9 @@ Screenshots:
 # Install
 Check [Release page](https://github.com/Mark-Shternberg/Light-asterisk-caller/releases) for last release<br>
 Download Windows installer via link in release description
+After install will appear ini file. Replace example settings by yours, save and close
+<br><br>
+If you will need to edit settings after install, ini file will be here:
+```
+%userprofile%\AppData\Roaming\Light-asterisk-caller\
+```
