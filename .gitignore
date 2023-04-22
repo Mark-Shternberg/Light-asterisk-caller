@@ -9,4 +9,11 @@
 *.html
 *.spec
 *.ini
-dist/listener.py
+*.aip
+*.rtf
+*.reg
+dist/*
+Generated Images/*
+INSTALLER/*
+installer-cache/*
+installer-SetupFiles/*

@@ -1,15 +1,15 @@
 import sys
 import re
+import os
 from asterisk.ami import AMIClient
 from asterisk.ami import SimpleAction
 import configparser
 from error import error_massage
 
 config = configparser.ConfigParser()
-config.read("settings.ini")
+config.read(os.environ['USERPROFILE'] + "\\AppData\\Roaming\\Light-asterisk-caller\\settings.ini")
 
 def check_phone(tel: str):
-    print(tel)
     if tel is None: return False
     else:
         internal = config['ASTERISK']["INTERNAL"]
@@ -25,12 +25,9 @@ def check_phone(tel: str):
 
 def make_call(tel: str):
     if check_phone(tel) is False: 
-        print("Wrong phone number!")
+        error_massage("Wrong phone number!")
         quit()
     else:
-        config = configparser.ConfigParser()
-        config.read("settings.ini")
-
         client = AMIClient(address=config['AMI']["URL"],port=int(config['AMI']["PORT"]))
         client.login(username=config['AMI']["USERNAME"],secret=config['AMI']["SECRET"],callback=10)
 

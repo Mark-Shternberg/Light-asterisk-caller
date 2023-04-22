@@ -6,11 +6,12 @@ import telnetlib
 import json
 import re
 import io
+import os
 from PIL import Image, ImageTk
 from ldap3 import Server, Connection, ALL
 
 config = configparser.ConfigParser()
-config.read("settings.ini", encoding="utf-8")
+config.read(os.environ['USERPROFILE'] + "\\AppData\\Roaming\\Light-asterisk-caller\\settings.ini", encoding="utf-8")
 
 def massage(call_tel, call_from, call_photo, call_desc, Caller_post):
     massage = Tk()
@@ -19,7 +20,7 @@ def massage(call_tel, call_from, call_photo, call_desc, Caller_post):
     x = (screen_width) - (380)
     y = (screen_height) - (220)
     massage.geometry('%dx%d+%d+%d' % (350, 130, x, y))
-    massage.iconbitmap("ico/call_in.ico")
+    massage.iconbitmap(os.environ['USERPROFILE'] + "\\AppData\\Roaming\\Light-asterisk-caller\\ico\\call_in.ico")
     massage.title("Incoming call - " + call_tel)
 
     if call_photo is None or call_photo == '':
@@ -58,7 +59,7 @@ def ldap_search(tel: str, i):
         elif i == "desc": return str(entry['description'])
         elif i == "title": return str(entry['title'])
 
-def listen_sip():
+async def listen_sip():
     ##
     HOST = config['AMI']["URL"]
     PORT = config['AMI']["PORT"]
@@ -101,7 +102,6 @@ def listen_sip():
         if string_out_def:
             string_out = string_out_def
 
-
     while True:
         string = ''
         event_string = ''
@@ -111,12 +111,10 @@ def listen_sip():
         read_some = tn.read_some()  # Получаем строчку из AMI
 
         string = read_some.decode('utf8', 'replace').replace('\r\n', '#')   # Декодируем строчки и заменяем переносы строк на #
-        # print(string)
 
         # Отлавливаем начало строки и склеиваем строчку
         if not string.endswith('##'):
             string_NOW = string_NOW + string
-            # print('1 --->',string_NOW)
 
         # Если строчка закончилась, то доклеиваем конец строки и
         # совершаем магию, которая двойной перенос строки в середине строки заменит на $,
@@ -129,25 +127,16 @@ def listen_sip():
             string_NOW = string_NOW.replace('"', '')    # Удаляем кавычки
             string_NOW = string_NOW.replace('\\', '')   # удаляем обратный слеш
 
-            # print('string_NOW -->',string_NOW)
-            # print()
-
             # Делим полученую строчку на Евенты т.к. двойной перенос как раз её так и делил
             events = re.findall(r'[A-Z][\w]+:\s[^$]+', string_NOW)
             for event in events:
                 c+=1
-                # print('event ---> ',event)
 
                 event_elements = re.findall(r'[A-Z][\w]+:\s[^#]+', event)   # А тут делим евенты на елемены
                 for element in event_elements:
                     element = '\"' + element.replace(': ', '\": "') + '\", '# Вручную делаем словарь
-                    # print('element', element)
                     elements_string = elements_string + element # Склеиваем строчки обратно, получаем словарь
-                # event_string = event_string + '\"' + elements_string.split(':')[1].split(',')[0].replace('"','') + '\": ' + '{' + elements_string + '}'
-                # print(elements_string)
-                # print(str(elements_string.split(':')[1].split(',')[0]))
 
-                # собираем обратно евенты попутно формирую json:
                 event_string = event_string + '\"' + str(c) + '\": ' + '{' + elements_string + '}'
                 event_string = event_string.replace('}{', '},{')    #   Добавляем запятую между евентами
                 event_string = event_string.replace(', }', '}, ')   #
@@ -164,8 +153,6 @@ def listen_sip():
                 #print(string_NOW, '\n\n\n')
                 #print('')
 
-            # Отправляем полученую строчку в функуию "telnet_for_string", в которой уже можно обработать полученую строчку.
             telnet_for_string(parsed_string)
-            string_NOW = '' # Очищем строчку
+            string_NOW = '' 
     
-#listen_sip()

@@ -1,4 +1,5 @@
 import re
+import os
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
@@ -9,15 +10,11 @@ import configparser
 from error import error_massage
 
 config = configparser.ConfigParser()
-config.read("settings.ini", encoding="utf-8")
+config.read(os.environ['USERPROFILE'] + "\\AppData\\Roaming\\Light-asterisk-caller\\settings.ini", encoding="utf-8")
 
-def check_phone(tel: str):
-    print(tel)
+def check_phone(tel: str): 
     if tel is None: return False
     else:
-        config = configparser.ConfigParser()
-        config.read("settings.ini")
-
         internal = config['ASTERISK']["INTERNAL"]
 
         find = re.compile(r'^[\+]?[0-9]{1,3}?[ ]?[(]?[0-9]{3}[)]?[ ]?[0-9-]{7,9}$')
@@ -67,7 +64,7 @@ def call_out_massage():
         x = (screen_width/2) - (350/2)
         y = (screen_height/2) - (150/2)
         massage.geometry('%dx%d+%d+%d' % (350, 150, x, y))
-    massage.iconbitmap("ico/call_out.ico")
+    massage.iconbitmap(os.environ['USERPROFILE'] + "\\AppData\\Roaming\\Light-asterisk-caller\\ico\\call_out.ico")
     massage.title("Make call")
 
     Label(massage, text="Enter phone number:", font=('Helvetica 12 bold')).pack(pady=5)
