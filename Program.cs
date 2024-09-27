@@ -14,6 +14,7 @@ namespace Light_Asterisk_Caller
         private static Mutex mutex = null;
         private static NotifyIcon trayIcon;
         private static IConfiguration configuration;
+        private static IConfiguration translation;
 
         [STAThread]
         static void Main(string[] args)
@@ -31,7 +32,22 @@ namespace Light_Asterisk_Caller
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке конфигурации: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка при загрузке конфигурации: {ex.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(1);
+            }
+
+            try
+            {
+                // Translation LOAD
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                    .AddJsonFile("translation.json", optional: false, reloadOnChange: true);
+
+                translation = builder.Build();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке переводов: {ex.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
 
@@ -43,12 +59,12 @@ namespace Light_Asterisk_Caller
 
                 if (allArguments == "callform")
                 {
-                    ShowCallForm(configuration);
+                    ShowCallForm(configuration, translation);
                 }
                 else
                 {
                     // Передаем объединенную строку в функцию
-                    QuickCall quickCall = new QuickCall(allArguments, configuration);
+                    QuickCall quickCall = new QuickCall(allArguments, configuration, translation);
                     Environment.Exit(0);
                 }
             }
@@ -61,7 +77,7 @@ namespace Light_Asterisk_Caller
             {
                 if (allArguments == "callform") Environment.Exit(0);
                 // Если программа уже запущена, выводим сообщение с кнопками OK и Cancel
-                DialogResult result = MessageBox.Show("Program is already running! Do you want to restart?", "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                DialogResult result = MessageBox.Show("Program is already running! Do you want to restart?", get_translate("Error"), MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
 
                 if (result == DialogResult.OK)
                 {
@@ -76,21 +92,21 @@ namespace Light_Asterisk_Caller
             }
 
             // Создаем иконку для трея
-            InitializeTrayIcon(configuration);
+            InitializeTrayIcon(configuration, translation);
 
             // Запускаем приложение, но не показываем никакую форму
             Application.Run();
         }
 
         // CREATE TRAY ICON
-        private static void InitializeTrayIcon(IConfiguration configuration)
+        private static void InitializeTrayIcon(IConfiguration configuration, IConfiguration translation)
         {
             trayIcon = new NotifyIcon
             {
                 Icon = new Icon("Resources/favicon.ico"),
                 Visible = true,
                 Text = "Light Asterisk Caller",
-                ContextMenuStrip = CreateTrayMenu(configuration)
+                ContextMenuStrip = CreateTrayMenu(configuration, translation)
             };
 
             // Подписываемся на событие двойного клика
@@ -98,18 +114,20 @@ namespace Light_Asterisk_Caller
         }
 
         // CREATE TRAY MENU
-        private static ContextMenuStrip CreateTrayMenu(IConfiguration configuration)
+        private static ContextMenuStrip CreateTrayMenu(IConfiguration Configuration, IConfiguration Translation)
         {
+            //configuration = Configuration;
+            //translation = Translation;
 
             var menu = new ContextMenuStrip();
-            menu.Items.Add("Call", null, (sender, e) => ShowCallForm(configuration));
-            menu.Items.Add("Options", null, (sender, e) => ShowOptionsForm(configuration));
-            menu.Items.Add("Exit", null, (sender, e) => ExitApplication());
+            menu.Items.Add(get_translate("Call"), null, (sender, e) => ShowCallForm(configuration, translation));
+            menu.Items.Add(get_translate("Options"), null, (sender, e) => ShowOptionsForm(configuration, translation));
+            menu.Items.Add(get_translate("Exit"), null, (sender, e) => ExitApplication());
             return menu;
         }
 
         // Метод для показа формы Call
-        private static void ShowCallForm(IConfiguration configuration)
+        private static void ShowCallForm(IConfiguration configuration, IConfiguration translation)
         {
             // Проверяем, открыта ли форма типа Call
             Form callForm = Application.OpenForms.OfType<Call>().FirstOrDefault();
@@ -123,42 +141,35 @@ namespace Light_Asterisk_Caller
             else
             {
                 // Если формы нет, создаём новую
-                Call newCallForm = new Call(configuration);
+                Call newCallForm = new Call(configuration, translation);
                 newCallForm.Show();  // Используем Show для немодального окна
             }
         }
 
         // Метод для показа формы Options
-        private static void ShowOptionsForm(IConfiguration configuration)
+        private static void ShowOptionsForm(IConfiguration configuration, IConfiguration translation)
         {
-            FormCollection fc = Application.OpenForms;
-            int check = 0;
+            // Проверяем, открыта ли форма типа Options
+            Form OptionsForm = Application.OpenForms.OfType<Options>().FirstOrDefault();
 
-            foreach (Form frm in fc)
+            if (OptionsForm != null)
             {
-                //iterate through
-                if (frm.Text == "Options")
-                {
-                    check++;
-                    frm.Focus();
-                    break;
-                }
+                // Если форма уже существует, активируем её
+                OptionsForm.WindowState = FormWindowState.Normal; // Восстановить, если свернута
+                OptionsForm.Focus();
             }
-
-            if (check == 0)
+            else
             {
-                using (Options Options = new Options(configuration))
-                {
-                    //Options.FormClosed += Options_FormClosed;
-                    Options.ShowDialog();
-                }
+                // Если формы нет, создаём новую
+                Options newOptionsForm = new Options(configuration, translation);
+                newOptionsForm.Show();  // Используем Show для немодального окна
             }
         }
 
         private static void Options_FormClosed(object sender, FormClosedEventArgs e)
         {
             // Убедитесь, что иконка в трее корректно обновлена
-            InitializeTrayIcon(configuration);
+            InitializeTrayIcon(configuration, translation);
         }
 
         // KILL PROGRAM IF IT's ALREADY RUNNING
@@ -179,7 +190,7 @@ namespace Light_Asterisk_Caller
         {
             if (e.Button == MouseButtons.Left)
             {
-                ShowCallForm(configuration);
+                ShowCallForm(configuration, translation);
             }
         }
 
@@ -188,6 +199,14 @@ namespace Light_Asterisk_Caller
         {
             trayIcon.Visible = false; // Скрыть иконку перед выходом
             Application.Exit();
+        }
+
+        // GET TRANSLATE
+        private static string get_translate(string option)
+        {
+            string language = configuration["App:Language"] ?? "English";
+
+            return translation[language + ":" + option] ?? "Translation error";
         }
     }
 }

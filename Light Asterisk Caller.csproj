@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <None Remove="appsettings.json" />
+    <None Remove="translation.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +20,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\favicon.ico" />
+    <Content Include="translation.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

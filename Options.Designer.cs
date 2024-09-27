@@ -36,12 +36,12 @@
             AsteriskUser = new MaterialSkin.Controls.MaterialTextBox();
             AsteriskPort = new MaterialSkin.Controls.MaterialTextBox();
             AsteriskServer = new MaterialSkin.Controls.MaterialTextBox();
-            materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
+            AMI_label = new MaterialSkin.Controls.MaterialLabel();
             materialCard2 = new MaterialSkin.Controls.MaterialCard();
             SIPCallerID = new MaterialSkin.Controls.MaterialTextBox();
             SIPContext = new MaterialSkin.Controls.MaterialTextBox();
             SIPChannel = new MaterialSkin.Controls.MaterialTextBox();
-            materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
+            sip_label = new MaterialSkin.Controls.MaterialLabel();
             materialCard3 = new MaterialSkin.Controls.MaterialCard();
             LDAPSearchFilter = new MaterialSkin.Controls.MaterialTextBox();
             LDAPPassword = new MaterialSkin.Controls.MaterialTextBox();
@@ -49,9 +49,15 @@
             LDAPServer = new MaterialSkin.Controls.MaterialTextBox();
             LDAPSwitch = new MaterialSkin.Controls.MaterialSwitch();
             materialLabel3 = new MaterialSkin.Controls.MaterialLabel();
+            materialCard4 = new MaterialSkin.Controls.MaterialCard();
+            oldLang = new Label();
+            Language = new MaterialSkin.Controls.MaterialComboBox();
+            Theme = new MaterialSkin.Controls.MaterialSwitch();
+            app_label = new MaterialSkin.Controls.MaterialLabel();
             materialCard1.SuspendLayout();
             materialCard2.SuspendLayout();
             materialCard3.SuspendLayout();
+            materialCard4.SuspendLayout();
             SuspendLayout();
             // 
             // Save_button
@@ -62,7 +68,7 @@
             Save_button.Depth = 0;
             Save_button.HighEmphasis = true;
             Save_button.Icon = null;
-            Save_button.Location = new Point(176, 613);
+            Save_button.Location = new Point(185, 726);
             Save_button.Margin = new Padding(4, 6, 4, 6);
             Save_button.MouseState = MaterialSkin.MouseState.HOVER;
             Save_button.Name = "Save_button";
@@ -83,7 +89,7 @@
             Cancel_button.Depth = 0;
             Cancel_button.HighEmphasis = true;
             Cancel_button.Icon = null;
-            Cancel_button.Location = new Point(411, 613);
+            Cancel_button.Location = new Point(420, 726);
             Cancel_button.Margin = new Padding(4, 6, 4, 6);
             Cancel_button.MouseState = MaterialSkin.MouseState.HOVER;
             Cancel_button.Name = "Cancel_button";
@@ -103,7 +109,7 @@
             materialCard1.Controls.Add(AsteriskUser);
             materialCard1.Controls.Add(AsteriskPort);
             materialCard1.Controls.Add(AsteriskServer);
-            materialCard1.Controls.Add(materialLabel1);
+            materialCard1.Controls.Add(AMI_label);
             materialCard1.Depth = 0;
             materialCard1.ForeColor = Color.FromArgb(222, 0, 0, 0);
             materialCard1.Location = new Point(17, 78);
@@ -188,17 +194,17 @@
             AsteriskServer.Text = "";
             AsteriskServer.TrailingIcon = null;
             // 
-            // materialLabel1
+            // AMI_label
             // 
-            materialLabel1.AutoSize = true;
-            materialLabel1.Depth = 0;
-            materialLabel1.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel1.Location = new Point(17, 14);
-            materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
-            materialLabel1.Name = "materialLabel1";
-            materialLabel1.Size = new Size(117, 19);
-            materialLabel1.TabIndex = 3;
-            materialLabel1.Text = "Asterisk settings";
+            AMI_label.AutoSize = true;
+            AMI_label.Depth = 0;
+            AMI_label.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            AMI_label.Location = new Point(17, 14);
+            AMI_label.MouseState = MaterialSkin.MouseState.HOVER;
+            AMI_label.Name = "AMI_label";
+            AMI_label.Size = new Size(117, 19);
+            AMI_label.TabIndex = 3;
+            AMI_label.Text = "Asterisk settings";
             // 
             // materialCard2
             // 
@@ -206,7 +212,7 @@
             materialCard2.Controls.Add(SIPCallerID);
             materialCard2.Controls.Add(SIPContext);
             materialCard2.Controls.Add(SIPChannel);
-            materialCard2.Controls.Add(materialLabel2);
+            materialCard2.Controls.Add(sip_label);
             materialCard2.Depth = 0;
             materialCard2.ForeColor = Color.FromArgb(222, 0, 0, 0);
             materialCard2.Location = new Point(443, 78);
@@ -234,6 +240,7 @@
             SIPCallerID.TabIndex = 7;
             SIPCallerID.Text = "";
             SIPCallerID.TrailingIcon = null;
+            SIPCallerID.Visible = false;
             // 
             // SIPContext
             // 
@@ -271,17 +278,17 @@
             SIPChannel.Text = "";
             SIPChannel.TrailingIcon = null;
             // 
-            // materialLabel2
+            // sip_label
             // 
-            materialLabel2.AutoSize = true;
-            materialLabel2.Depth = 0;
-            materialLabel2.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
-            materialLabel2.Location = new Point(17, 14);
-            materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
-            materialLabel2.Name = "materialLabel2";
-            materialLabel2.Size = new Size(85, 19);
-            materialLabel2.TabIndex = 3;
-            materialLabel2.Text = "SIP settings";
+            sip_label.AutoSize = true;
+            sip_label.Depth = 0;
+            sip_label.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            sip_label.Location = new Point(17, 14);
+            sip_label.MouseState = MaterialSkin.MouseState.HOVER;
+            sip_label.Name = "sip_label";
+            sip_label.Size = new Size(85, 19);
+            sip_label.TabIndex = 3;
+            sip_label.Text = "SIP settings";
             // 
             // materialCard3
             // 
@@ -399,23 +406,102 @@
             materialLabel3.Location = new Point(17, 14);
             materialLabel3.MouseState = MaterialSkin.MouseState.HOVER;
             materialLabel3.Name = "materialLabel3";
-            materialLabel3.Size = new Size(101, 19);
+            materialLabel3.Size = new Size(41, 19);
             materialLabel3.TabIndex = 5;
-            materialLabel3.Text = "LDAP settings";
+            materialLabel3.Text = "LDAP";
+            // 
+            // materialCard4
+            // 
+            materialCard4.BackColor = Color.FromArgb(255, 255, 255);
+            materialCard4.Controls.Add(oldLang);
+            materialCard4.Controls.Add(Language);
+            materialCard4.Controls.Add(Theme);
+            materialCard4.Controls.Add(app_label);
+            materialCard4.Depth = 0;
+            materialCard4.ForeColor = Color.FromArgb(222, 0, 0, 0);
+            materialCard4.Location = new Point(17, 606);
+            materialCard4.Margin = new Padding(14);
+            materialCard4.MouseState = MaterialSkin.MouseState.HOVER;
+            materialCard4.Name = "materialCard4";
+            materialCard4.Padding = new Padding(14);
+            materialCard4.Size = new Size(732, 100);
+            materialCard4.TabIndex = 15;
+            // 
+            // oldLang
+            // 
+            oldLang.AutoSize = true;
+            oldLang.Location = new Point(405, 4);
+            oldLang.Name = "oldLang";
+            oldLang.Size = new Size(50, 15);
+            oldLang.TabIndex = 3;
+            oldLang.Text = "oldLang";
+            oldLang.Visible = false;
+            // 
+            // Language
+            // 
+            Language.AutoResize = false;
+            Language.BackColor = Color.FromArgb(255, 255, 255);
+            Language.Depth = 0;
+            Language.DrawMode = DrawMode.OwnerDrawVariable;
+            Language.DropDownHeight = 174;
+            Language.DropDownStyle = ComboBoxStyle.DropDownList;
+            Language.DropDownWidth = 121;
+            Language.Font = new Font("Microsoft Sans Serif", 14F, FontStyle.Bold, GraphicsUnit.Pixel);
+            Language.ForeColor = Color.FromArgb(222, 0, 0, 0);
+            Language.FormattingEnabled = true;
+            Language.IntegralHeight = false;
+            Language.ItemHeight = 43;
+            Language.Location = new Point(356, 32);
+            Language.MaxDropDownItems = 4;
+            Language.MouseState = MaterialSkin.MouseState.OUT;
+            Language.Name = "Language";
+            Language.Size = new Size(359, 49);
+            Language.StartIndex = 0;
+            Language.TabIndex = 2;
+            // 
+            // Theme
+            // 
+            Theme.AutoSize = true;
+            Theme.Depth = 0;
+            Theme.Location = new Point(123, 36);
+            Theme.Margin = new Padding(0);
+            Theme.MouseLocation = new Point(-1, -1);
+            Theme.MouseState = MaterialSkin.MouseState.HOVER;
+            Theme.Name = "Theme";
+            Theme.Ripple = true;
+            Theme.Size = new Size(135, 37);
+            Theme.TabIndex = 1;
+            Theme.Text = "Dark mode";
+            Theme.UseVisualStyleBackColor = true;
+            Theme.CheckedChanged += Theme_CheckedChanged;
+            // 
+            // app_label
+            // 
+            app_label.AutoSize = true;
+            app_label.Depth = 0;
+            app_label.Font = new Font("Roboto", 14F, FontStyle.Regular, GraphicsUnit.Pixel);
+            app_label.Location = new Point(17, 14);
+            app_label.MouseState = MaterialSkin.MouseState.HOVER;
+            app_label.Name = "app_label";
+            app_label.Size = new Size(29, 19);
+            app_label.TabIndex = 0;
+            app_label.Text = "App";
             // 
             // Options
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(773, 677);
+            ClientSize = new Size(773, 780);
+            Controls.Add(materialCard4);
             Controls.Add(materialCard3);
             Controls.Add(materialCard2);
             Controls.Add(materialCard1);
             Controls.Add(Cancel_button);
             Controls.Add(Save_button);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            MaximumSize = new Size(773, 677);
-            MinimumSize = new Size(773, 677);
+            MaximizeBox = false;
+            MaximumSize = new Size(773, 780);
+            MinimumSize = new Size(773, 780);
             Name = "Options";
             Sizable = false;
             Text = "Options";
@@ -426,6 +512,8 @@
             materialCard2.PerformLayout();
             materialCard3.ResumeLayout(false);
             materialCard3.PerformLayout();
+            materialCard4.ResumeLayout(false);
+            materialCard4.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -434,11 +522,11 @@
         private MaterialSkin.Controls.MaterialButton Save_button;
         private MaterialSkin.Controls.MaterialButton Cancel_button;
         private MaterialSkin.Controls.MaterialCard materialCard1;
-        private MaterialSkin.Controls.MaterialLabel materialLabel1;
+        private MaterialSkin.Controls.MaterialLabel AMI_label;
         private MaterialSkin.Controls.MaterialTextBox AsteriskPort;
         private MaterialSkin.Controls.MaterialTextBox AsteriskServer;
         private MaterialSkin.Controls.MaterialCard materialCard2;
-        private MaterialSkin.Controls.MaterialLabel materialLabel2;
+        private MaterialSkin.Controls.MaterialLabel sip_label;
         private MaterialSkin.Controls.MaterialCard materialCard3;
         private MaterialSkin.Controls.MaterialLabel materialLabel3;
         private MaterialSkin.Controls.MaterialTextBox AsteriskPassword;
@@ -451,5 +539,10 @@
         private MaterialSkin.Controls.MaterialTextBox LDAPUser;
         private MaterialSkin.Controls.MaterialTextBox LDAPServer;
         private MaterialSkin.Controls.MaterialSwitch LDAPSwitch;
+        private MaterialSkin.Controls.MaterialCard materialCard4;
+        private MaterialSkin.Controls.MaterialSwitch Theme;
+        private MaterialSkin.Controls.MaterialLabel app_label;
+        private MaterialSkin.Controls.MaterialComboBox Language;
+        private Label oldLang;
     }
 }

@@ -14,14 +14,16 @@ namespace Light_Asterisk_Caller
     internal class QuickCall
     {
         private readonly IConfiguration Configuration;
+        private readonly IConfiguration Translation;
 
-        public QuickCall(string phone, IConfiguration configuration)
+        public QuickCall(string phone, IConfiguration configuration, IConfiguration translation)
         {
             Configuration = configuration;
+            Translation = translation;
 
             if(check_sip_exist() == false)
             {
-                MessageBox.Show($"Настройки SIP отсутствуют", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(get_translate("Phone_error"), get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else call(phone);
         }
@@ -39,6 +41,7 @@ namespace Light_Asterisk_Caller
             var fromExtension = Configuration["SIP-settings:channel"]; // Внутренний номер вызывающего абонента
             string toNumber = RemoveUnwantedCharacters(phone); // Номер, на который звоним
             var context = Configuration["SIP-settings:context"]; // Контекст, определённый в Asterisk
+            var caller_id = Configuration["SIP-settings:caller-id"]; // Caller ID
 
             // Инициализируем подключение к Asterisk
             ManagerConnection manager = new ManagerConnection(asteriskHost, asteriskPort, asteriskUsername, asteriskPassword);
@@ -54,7 +57,7 @@ namespace Light_Asterisk_Caller
                 originate.Context = context; // Контекст для вызова
                 originate.Exten = toNumber; // Номер, на который будет звонок
                 originate.Priority = "1"; // Приоритет вызова
-                originate.CallerId = fromExtension; // ID вызывающего абонента
+                originate.CallerId = caller_id; // ID вызывающего абонента
                 originate.Timeout = 30000; // Тайм-аут на вызов (30 секунд)
 
                 // Запускаем вызов асинхронно, чтобы не блокировать UI
@@ -63,7 +66,7 @@ namespace Light_Asterisk_Caller
                 // Проверяем ответ от Asterisk
                 if (originateResponse.Response != "Success")
                 {
-                    MessageBox.Show($"Ошибка при инициации звонка: {originateResponse.Message}", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"{get_translate("call_error")}: {originateResponse.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 // Отключаемся от Asterisk
@@ -71,7 +74,7 @@ namespace Light_Asterisk_Caller
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при инициации звонка: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{get_translate("call_error")}: {ex.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -103,6 +106,14 @@ namespace Light_Asterisk_Caller
 
             if (error == 0) return true;
             else return false;
+        }
+
+        // GET TRANSLATE
+        private string get_translate(string option)
+        {
+            string language = Configuration["App:Language"] ?? "English";
+
+            return Translation[language + ":" + option] ?? "Translation error";
         }
     }
 }

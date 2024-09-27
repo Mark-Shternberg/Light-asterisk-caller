@@ -18,18 +18,21 @@ using Microsoft.Extensions.Configuration;
 using System.DirectoryServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Text.RegularExpressions;
+using static System.Windows.Forms.Design.AxImporter;
 
 namespace Light_Asterisk_Caller
 {
     public partial class Call : MaterialForm
     {
         private IConfiguration Configuration;
+        private IConfiguration Translation;
 
         public DataTable ldap_results_table { get; set; } = new DataTable();
 
-        public Call(IConfiguration configuration)
+        public Call(IConfiguration configuration, IConfiguration translation)
         {
             Configuration = configuration;
+            Translation = translation;
 
             var materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.AddFormToManage(this);
@@ -43,7 +46,21 @@ namespace Light_Asterisk_Caller
             materialSkinManager.EnforceBackcolorOnAllComponents = true;
             InitializeComponent();
 
+            set_up_languadge();
             set_up_settings();
+        }
+
+        // SET UP LANGUADGE
+        private void set_up_languadge()
+        {
+            this.Text = get_translate("Call");
+            settings_button.Text = get_translate("Options");
+            Phone.Hint = get_translate("Phone");
+            Call_button.Text = get_translate("Call_button");
+            Cancel_button.Text = get_translate("Cancel_button");
+            Search_LDAP.Hint = get_translate("Search_LDAP_loading");
+            Search_LDAP_combobox.Hint = get_translate("Name_LDAP");
+            Search_LDAP_phone.Hint = get_translate("Phone");
         }
 
         // SET UP SETTINGS
@@ -54,15 +71,17 @@ namespace Light_Asterisk_Caller
             if (sip_exist == false)
             {
                 Phone.Enabled = false;
-                sip_exist_label.Visible = true;
-                sip_exist_label.ForeColor = Color.IndianRed;
-                sip_exist_label.Font = new Font("Sans Serif Collection", 8, FontStyle.Bold);
+                Phone.Hint = get_translate("Phone_error");
+                //sip_exist_label.Visible = true;
+                //sip_exist_label.ForeColor = Color.IndianRed;
+                //sip_exist_label.Font = new Font("Sans Serif Collection", 8, FontStyle.Bold);
                 Call_button.Enabled = false;
             }
             else
             {
                 Phone.Enabled = true;
-                sip_exist_label.Visible = false;
+                Phone.Hint = get_translate("Phone");
+                //sip_exist_label.Visible = false;
                 Call_button.Enabled = true;
             }
 
@@ -73,7 +92,7 @@ namespace Light_Asterisk_Caller
                 Search_LDAP.Enabled = true;
                 Search_LDAP_combobox.Enabled = true;
                 Search_LDAP_phone.Enabled = true;
-                Search_LDAP.Hint = "Search LDAP (Loading ... )";
+                Search_LDAP.Hint = get_translate("Search_LDAP_loading");
 
                 // Запускаем LDAP_search асинхронно
                 try
@@ -93,7 +112,7 @@ namespace Light_Asterisk_Caller
                                         this.Invoke(new Action(() =>
                                         {
                                             Search_LDAP.Enabled = true;
-                                            Search_LDAP.Hint = "Search LDAP";
+                                            Search_LDAP.Hint = get_translate("Search_LDAP");
                                             Search_LDAP_combobox.Enabled = true;
                                             Search_LDAP_phone.Enabled = true;
                                         }));
@@ -107,8 +126,8 @@ namespace Light_Asterisk_Caller
                             else
                             {
                                 // Обработка ошибок
-                                MessageBox.Show($"Ошибка LDAP: {task.Exception.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                Search_LDAP.Hint = "Error";
+                                MessageBox.Show($"LDAP {get_translate("Error")}: {task.Exception.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                Search_LDAP.Hint = get_translate("Error");
                                 Search_LDAP.Enabled = false;
                                 Search_LDAP_combobox.Enabled = false;
                                 Search_LDAP_phone.Enabled = false;
@@ -117,26 +136,23 @@ namespace Light_Asterisk_Caller
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при инициации звонка: {ex.Message}", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"{get_translate("call_error")}: {ex.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            else Search_LDAP.Hint = "LDAP disabled";
+            else
+            {
+                Search_LDAP.Hint = get_translate("Search_LDAP_disabled");
+                Search_LDAP.Enabled = false;
+                Search_LDAP_combobox.Enabled = false;
+                Search_LDAP_phone.Enabled = false;
+            }
         }
 
-        // CHECK SYSTEM THEME
-        static bool IsDarkTheme()
+        // CHECK THEME
+        private bool IsDarkTheme()
         {
-            const string registryKey = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
-            const string valueName = "AppsUseLightTheme";
-            object registryValue = Registry.GetValue(registryKey, valueName, null);
-
-            if (registryValue is int themeValue)
-            {
-                return themeValue == 0; // 0 означает тёмную тему
-            }
-
-            // Если параметр не найден, считаем, что используется светлая тема
-            return false;
+            if (Configuration["App:Theme"] == "Dark") return true;
+            else return false;
         }
 
         // CHECK SIP SETTINGS EXIST
@@ -169,6 +185,7 @@ namespace Light_Asterisk_Caller
             var fromExtension = Configuration["SIP-settings:channel"]; // Внутренний номер вызывающего абонента
             string toNumber = RemoveUnwantedCharacters(Phone.Text); // Номер, на который звоним
             var context = Configuration["SIP-settings:context"]; // Контекст, определённый в Asterisk
+            var caller_id = Configuration["SIP-settings:caller-id"]; // Caller ID
 
             // Инициализируем подключение к Asterisk
             ManagerConnection manager = new ManagerConnection(asteriskHost, asteriskPort, asteriskUsername, asteriskPassword);
@@ -184,12 +201,12 @@ namespace Light_Asterisk_Caller
                 originate.Context = context; // Контекст для вызова
                 originate.Exten = toNumber; // Номер, на который будет звонок
                 originate.Priority = "1"; // Приоритет вызова
-                originate.CallerId = fromExtension; // ID вызывающего абонента
+                originate.CallerId = caller_id; // ID вызывающего абонента
                 originate.Timeout = 30000; // Тайм-аут на вызов (30 секунд)
 
                 // Отключаем кнопку вызова, чтобы пользователь не мог нажимать её повторно
                 Call_button.Enabled = false;
-                Call_button.Text = "Call in progress...";
+                Call_button.Text = get_translate("Phone_calling");
                 Phone.Enabled = false;
 
                 // Запускаем вызов асинхронно, чтобы не блокировать UI
@@ -198,7 +215,7 @@ namespace Light_Asterisk_Caller
                 // Проверяем ответ от Asterisk
                 if (originateResponse.Response != "Success")
                 {
-                    MessageBox.Show($"Ошибка при инициации звонка: {originateResponse.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"{get_translate("call_error")}: {originateResponse.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 // Отключаемся от Asterisk
@@ -206,21 +223,42 @@ namespace Light_Asterisk_Caller
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при инициации звонка: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{get_translate("call_error")}: {ex.Message}", get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                // Возвращаем кнопку вызова в активное состояние
-                Call_button.Enabled = true;
-                Call_button.Text = "Call";
-                Phone.Enabled = true;
+                // Проверяем, что форма и её элементы ещё существуют
+                if (this.IsHandleCreated && !this.IsDisposed)
+                {
+                    try
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            if (Call_button != null && !Call_button.IsDisposed && Phone != null && !Phone.IsDisposed)
+                            {
+                                // Возвращаем кнопку вызова в активное состояние
+                                Call_button.Enabled = true;
+                                Call_button.Text = get_translate("Call");
+                                Phone.Enabled = true;
+                            }
+                        }));
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Игнорируем исключение, если объект был уничтожен во время операции
+                    }
+                }
             }
         }
 
         // CALL BUTTON
         private void Call_button_Click(object sender, EventArgs e)
         {
-            call();
+            if (Phone.Text != "") call();
+            else
+            {
+                MessageBox.Show(get_translate("phone_empty"), get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // REMOVE UNWANTED CHARACTERS FROM PHONE NUMBER
@@ -263,6 +301,7 @@ namespace Light_Asterisk_Caller
                     ldap_results_table.Columns.Add("Name", typeof(string));
                     ldap_results_table.Columns.Add("Mobile", typeof(string));
                     ldap_results_table.Columns.Add("Telephone Number", typeof(string));
+                    ldap_results_table.Columns.Add("Home Phone", typeof(string));
 
                     // Выполняем поиск
                     SearchResultCollection results = searcher.FindAll();
@@ -275,11 +314,12 @@ namespace Light_Asterisk_Caller
                         // Получаем информацию о пользователе
                         string givenName = userEntry.Properties["givenName"].Value?.ToString() ?? "N/A";
                         string sn = userEntry.Properties["sn"].Value?.ToString() ?? "N/A";
-                        string mobile = userEntry.Properties["mobile"].Value?.ToString() ?? "N/A";
-                        string telephoneNumber = userEntry.Properties["telephoneNumber"].Value?.ToString() ?? "N/A";
+                        string mobile = userEntry.Properties["mobile"].Value?.ToString() ?? "";
+                        string telephoneNumber = userEntry.Properties["telephoneNumber"].Value?.ToString() ?? "";
+                        string homePhone = userEntry.Properties["homePhone"].Value?.ToString() ?? "";
 
                         // Добавляем строку в таблицу
-                        ldap_results_table.Rows.Add(givenName + " " + sn, mobile, telephoneNumber);
+                        ldap_results_table.Rows.Add(givenName + " " + sn, mobile, telephoneNumber, homePhone);
 
                         // Проверяем, что форма и её элементы ещё существуют
                         if (this.IsHandleCreated && !this.IsDisposed)
@@ -350,8 +390,13 @@ namespace Light_Asterisk_Caller
                 if (matchingRow != null)
                 {
                     // Добавляем номера в ComboBox2
-                    Search_LDAP_phone.Items.Add(matchingRow.Field<string>("Telephone Number"));
-                    Search_LDAP_phone.Items.Add(matchingRow.Field<string>("Mobile"));
+                    string telephoneNumber = matchingRow.Field<string>("Telephone Number") ?? "";
+                    string mobile = matchingRow.Field<string>("Mobile") ?? "";
+                    string homePhone = matchingRow.Field<string>("Home Phone") ?? "";
+
+                    if (telephoneNumber != "") Search_LDAP_phone.Items.Add(telephoneNumber);
+                    if (mobile != "") Search_LDAP_phone.Items.Add(mobile);
+                    if (homePhone != "") Search_LDAP_phone.Items.Add(homePhone);
 
                     // Автоматически выбираем первый элемент в ComboBox2
                     Search_LDAP_phone.SelectedIndex = 0;
@@ -417,34 +462,37 @@ namespace Light_Asterisk_Caller
             if (matches.Count == 0)
             {
                 Phone.Text = "";
-                MessageBox.Show("Введён неверный номер телефона", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(get_translate("phone_wrong"), get_translate("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        // OPEN OPTIONS
         private void settings_button_Click(object sender, EventArgs e)
         {
-            FormCollection fc = Application.OpenForms;
-            int check = 0;
+            // Проверяем, открыта ли форма типа Options
+            Form OptionsForm = Application.OpenForms.OfType<Options>().FirstOrDefault();
 
-            foreach (Form frm in fc)
+            if (OptionsForm != null)
             {
-                //iterate through
-                if (frm.Text == "Options")
-                {
-                    check++;
-                    frm.Focus();
-                    break;
-                }
+                // Если форма уже существует, активируем её
+                OptionsForm.WindowState = FormWindowState.Normal; // Восстановить, если свернута
+                OptionsForm.Focus();
             }
+            else
+            {
+                // Если формы нет, создаём новую
+                Options newOptionsForm = new Options(Configuration, Translation);
+                newOptionsForm.ShowDialog();  
+                set_up_settings();
+            }
+        }
 
-            if (check == 0)
-            {
-                using (Options Options = new Options(Configuration))
-                {
-                    Options.ShowDialog();
-                    set_up_settings();
-                }
-            }
+        // GET TRANSLATE
+        private string get_translate(string option)
+        {
+            string language = Configuration["App:Language"] ?? "English";
+
+            return Translation[language + ":" + option] ?? "Translation error";
         }
     }
 }

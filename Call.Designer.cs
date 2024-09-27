@@ -36,7 +36,6 @@
             Call_button = new MaterialSkin.Controls.MaterialButton();
             Cancel_button = new MaterialSkin.Controls.MaterialButton();
             materialCard1 = new MaterialSkin.Controls.MaterialCard();
-            sip_exist_label = new Label();
             menuStrip1 = new MenuStrip();
             settings_button = new ToolStripMenuItem();
             materialCard1.SuspendLayout();
@@ -165,12 +164,12 @@
             Call_button.Depth = 0;
             Call_button.HighEmphasis = true;
             Call_button.Icon = null;
-            Call_button.Location = new Point(52, 174);
+            Call_button.Location = new Point(29, 174);
             Call_button.Margin = new Padding(4, 6, 4, 6);
             Call_button.MouseState = MaterialSkin.MouseState.HOVER;
             Call_button.Name = "Call_button";
             Call_button.NoAccentTextColor = Color.Empty;
-            Call_button.Size = new Size(399, 36);
+            Call_button.Size = new Size(422, 36);
             Call_button.TabIndex = 5;
             Call_button.Text = "Call";
             Call_button.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -186,7 +185,7 @@
             Cancel_button.Depth = 0;
             Cancel_button.HighEmphasis = true;
             Cancel_button.Icon = null;
-            Cancel_button.Location = new Point(168, 225);
+            Cancel_button.Location = new Point(154, 225);
             Cancel_button.Margin = new Padding(4, 6, 4, 6);
             Cancel_button.MouseState = MaterialSkin.MouseState.HOVER;
             Cancel_button.Name = "Cancel_button";
@@ -215,19 +214,6 @@
             materialCard1.Size = new Size(314, 216);
             materialCard1.TabIndex = 7;
             // 
-            // sip_exist_label
-            // 
-            sip_exist_label.AutoSize = true;
-            sip_exist_label.BackColor = Color.Transparent;
-            sip_exist_label.Font = new Font("Sans Serif Collection", 8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            sip_exist_label.ForeColor = Color.IndianRed;
-            sip_exist_label.Location = new Point(148, 146);
-            sip_exist_label.Name = "sip_exist_label";
-            sip_exist_label.Size = new Size(204, 27);
-            sip_exist_label.TabIndex = 9;
-            sip_exist_label.Text = "SIP settings doesn't exist";
-            sip_exist_label.Visible = false;
-            // 
             // menuStrip1
             // 
             menuStrip1.Items.AddRange(new ToolStripItem[] { settings_button });
@@ -249,7 +235,6 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 309);
-            Controls.Add(sip_exist_label);
             Controls.Add(Cancel_button);
             Controls.Add(Call_button);
             Controls.Add(Phone);
@@ -257,6 +242,7 @@
             Controls.Add(menuStrip1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip1;
+            MaximizeBox = false;
             MaximumSize = new Size(800, 309);
             MinimumSize = new Size(800, 309);
             Name = "Call";
@@ -279,7 +265,6 @@
         private MaterialSkin.Controls.MaterialButton Call_button;
         private MaterialSkin.Controls.MaterialButton Cancel_button;
         private MaterialSkin.Controls.MaterialCard materialCard1;
-        private Label sip_exist_label;
         private MenuStrip menuStrip1;
         private ToolStripMenuItem settings_button;
     }
